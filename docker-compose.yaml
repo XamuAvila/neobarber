@@ -6,5 +6,28 @@ services:
     env_file:
       - .env
     ports:
-      - "3000:3000"
+      - "4001:3000"
+    networks:
+      - neobarber-network
+  postgres:
+    image: postgres
+    restart: always
+    env_file:
+      - .env
+    ports:
+      - "5432:5432"
+    networks:
+      - neobarber-network
+  # mongo-express:
+  #   image: mongo-express
+  #   restart: always
+  #   ports:
+  #     - 8081:8081
+  #   env_file: 
+  #     - .env
+  #   networks:
+  #     - neobarber-network
+networks:
+  neobarber-network : 
+    name: neobarber-network
  
