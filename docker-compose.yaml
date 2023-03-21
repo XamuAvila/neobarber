@@ -1,33 +1,50 @@
-version: "3"
+version: '3'
+
 services:
-  neobarber:
-    container_name: neobarber
-    image: neobarber-app
-    env_file:
-      - .env
+  app:
+    container_name: neobarber-app
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: always
     ports:
-      - "4001:3000"
+      - '3000:3000'
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      POSTGRES_HOST: db
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    command: sh -c 'npx prisma generate && npx prisma db push && npm run start:dev'
     networks:
       - neobarber-network
-  postgres:
+
+  db:
+    container_name: neobarber-db
     image: postgres
     restart: always
-    env_file:
-      - .env
     ports:
       - "5432:5432"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_HOST: ${POSTGRES_HOST}
+      POSTGRES_PORT: ${POSTGRES_PORT}
+    healthcheck:
+      test: pg_isready -U postgres
+      interval: 10s
+      retries: 5
+    volumes:
+      - db-data:/var/lib/postgresql/data
     networks:
       - neobarber-network
-  # mongo-express:
-  #   image: mongo-express
-  #   restart: always
-  #   ports:
-  #     - 8081:8081
-  #   env_file: 
-  #     - .env
-  #   networks:
-  #     - neobarber-network
+
+volumes:
+  db-data:
+
 networks:
-  neobarber-network : 
-    name: neobarber-network
- 
+  neobarber-network:
